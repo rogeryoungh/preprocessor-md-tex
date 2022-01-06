@@ -1,8 +1,6 @@
-name: Build Artifact
+name: Build Release
 
-on:
-  push:
-    branches: [ main ]
+on: workflow_dispatch
 
 env:
   CARGO_TERM_COLOR: always
@@ -18,7 +16,7 @@ jobs:
     - name: Build
       run: cargo build --release
     
-    - name: Upload
-      uses: actions/upload-artifact@v2
+    - name: Release
+      uses: softprops/action-gh-release@v1
       with:
-        path: target/release/preprocessor-md-tex
+        files: target/release/preprocessor-md-tex
