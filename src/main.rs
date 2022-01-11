@@ -1,5 +1,9 @@
-fn is_markdown_file(file_path: &std::path::Path) -> bool {
-    if let Some(ext) = file_path.extension() {
+use std::fs;
+use std::path::Path;
+use std::path::PathBuf;
+
+fn is_markdown_file(path: &Path) -> bool {
+    if let Some(ext) = path.extension() {
         return ext == "md";
     } else {
         return false;
@@ -41,37 +45,32 @@ fn do_replace(content: &str) -> String {
     return result;
 }
 
-fn work(file_path: &std::path::Path) {
-    let contents = std::fs::read_to_string(file_path).expect("Unable to read file");
-    let after = do_replace(&contents);
-    std::fs::write(file_path, after).expect("Unable to write the file");
+fn dfs(path: &PathBuf) {
+    if path.is_dir() {
+        let paths = fs::read_dir(path).expect("Directory not exists");
+        for path in paths {
+            let path = path.unwrap().path();
+            dfs(&path);
+        }
+    } else if is_markdown_file(&path) {
+        println!("{}", path.display());
+        let contents = fs::read_to_string(path).expect("Unable to read file");
+        let after = do_replace(&contents);
+        fs::write(path, after).expect("Unable to write the file");
+    }
 }
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    if args.len() > 2 {
-        let arg_path = std::path::Path::new(&args[1]);
-        if arg_path.is_file() {
-            work(arg_path);
-        }
-    }
-
-    let walker = if args.len() >= 2 {
-        walkdir::WalkDir::new(&args[1])
+    if args.len() < 2 {
+        println!("usage: preprocesser-md-tex <path>");
     } else {
-        walkdir::WalkDir::new(std::env::current_dir().unwrap())
-    };
-
-    for entry in walker {
-        let entry = entry.unwrap();
-        let file_path = entry.path();
-
-        if !is_markdown_file(file_path) {
-            continue;
+        let target_path = PathBuf::from(&args[1]);
+        if target_path.is_dir() || is_markdown_file(&target_path) {
+            dfs(&target_path);
+        } else {
+            println!("Not a directory or md file.");
         }
-
-        println!("{}", file_path.display());
-        work(file_path);
     }
 }
