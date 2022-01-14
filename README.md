@@ -15,6 +15,14 @@
 
 仅在正文的公式块中执行以上替换，特别的代码块中不应触发 `$`。
 
+## Usage
+
+```
+$ preprocesser-md-tex test
+$ # or
+$ preprocesser-md-tex test t-md md
+```
+
 ------
 
 Just walk through all `*.md` file and do simple text replacement.
